@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chat App</title>
+  <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+</head>
+<body>
+  <h1>Chat App</h1>
+  <div id="chat">
+    <input id="username" placeholder="Username" />
+    <button onclick="joinChat()">Join</button>
+    <ul id="messages"></ul>
+    <input id="message" placeholder="Message" />
+    <button onclick="sendMessage()">Send</button>
+  </div>
+
+  <script>
+    const socket = io('http://localhost:3000');
+
+    socket.on('connect', () => {
+      console.log('Connected to server');
+    });
+
+    socket.on('message', (message) => {
+      const li = document.createElement('li');
+      li.innerText = `${message.username}: ${message.text}`;
+      document.getElementById('messages').appendChild(li);
+    });
+
+    socket.on('messages', (messages) => {
+      const messageList = document.getElementById('messages');
+      messageList.innerHTML = '';
+      messages.forEach(message => {
+        const li = document.createElement('li');
+        li.innerText = `${message.username}: ${message.text}`;
+        messageList.appendChild(li);
+      });
+    });
+
+    socket.on('userJoined', (username) => {
+      const li = document.createElement('li');
+      li.innerText = `${username} joined the chat`;
+      document.getElementById('messages').appendChild(li);
+    });
+
+    function joinChat() {
+      const username = document.getElementById('username').value;
+      socket.emit('join', username);
+    }
+
+    function sendMessage() {
+      const username = document.getElementById('username').value;
+      const text = document.getElementById('message').value;
+      socket.emit('message', { username, text });
+      document.getElementById('message').value = '';
+    }
+  </script>
+</body>
+</html>
